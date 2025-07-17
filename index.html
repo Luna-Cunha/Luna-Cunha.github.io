@@ -91,7 +91,7 @@
         }
 
         .card {
-            background-color: #e0e7ff; /* Light blue background for cards */
+            background-color: #e0e7ff; /* Light blue background for common cards */
             border: 1px solid #c3dafe; /* Lighter border */
             border-radius: 10px; /* Rounded corners for cards */
             padding: 18px;
@@ -113,10 +113,30 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
         }
 
+        /* SSR Card specific styling */
+        .card.ssr {
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3); /* Rainbow gradient */
+            background-size: 400% 400%; /* For animation */
+            animation: rainbow-glow 10s ease infinite; /* Animation for rainbow effect */
+            color: white; /* White text for better contrast on rainbow */
+            border: 2px solid #ffd700; /* Gold border for SSR */
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); /* Gold glow effect */
+        }
+
+        @keyframes rainbow-glow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         .card-rarity {
             font-size: 0.8em;
             color: #6b7280; /* Grey color for rarity text */
             margin-top: 5px;
+        }
+
+        .card.ssr .card-rarity {
+            color: #f0f0f0; /* Lighter color for rarity text on SSR cards */
         }
 
         #statistics {
@@ -247,7 +267,7 @@
             { name: "Daila", rarity: "SSR", probability: (0.04 / 6) },   // 6 SSR cards
             { name: "Luna", rarity: "SSR", probability: (0.04 / 6) },
             { name: "Sopa", rarity: "SSR", probability: (0.04 / 6) },
-            { name: "Susana", rarity: "SSR", probability: (0.04 / 6) },
+            { name: "Susana", rarity: "SSR", probability: (0.04 / 6) }, // Changed from Suzana to Susana
             { name: "Nick", rarity: "Common", probability: (0.96 / 14) },
             { name: "Jukru", rarity: "SSR", probability: (0.04 / 6) },
             { name: "Adachi", rarity: "Common", probability: (0.96 / 14) },
@@ -355,6 +375,10 @@
                 
                 const cardElement = document.createElement('div');
                 cardElement.classList.add('card');
+                // Add 'ssr' class if the card is SSR for rainbow styling
+                if (card.rarity === 'SSR') {
+                    cardElement.classList.add('ssr');
+                }
                 
                 const cardNameElement = document.createElement('div');
                 cardNameElement.textContent = card.name;
