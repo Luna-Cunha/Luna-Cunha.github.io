@@ -12,12 +12,23 @@
             font-family: 'Inter', sans-serif; /* Using Inter font as per instructions */
             background-color: #f0f2f5; /* Light grey background */
             display: flex;
+            flex-direction: column; /* Changed to column to stack title and container */
             justify-content: center;
             align-items: center;
             min-height: 100vh; /* Full viewport height */
             margin: 0;
             padding: 20px; /* Add some padding for smaller screens */
             box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+
+        h1 {
+            color: #1a202c; /* Darker heading color */
+            margin-bottom: 30px; /* Space below the title */
+            font-size: 4.5rem; /* Larger font size for heading outside the box */
+            font-weight: 700; /* Bold font weight */
+            text-align: center; /* Center the title */
+            width: 100%; /* Ensure title takes full width to center */
+            padding: 0 10px; /* Add some horizontal padding */
         }
 
         .container {
@@ -31,13 +42,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        h1 {
-            color: #1a202c; /* Darker heading color */
-            margin-bottom: 30px;
-            font-size: 2.5rem; /* Larger font size for heading */
-            font-weight: 700; /* Bold font weight */
         }
 
         .button-group {
@@ -189,11 +193,28 @@
             color: #38a169; /* Green color for count */
         }
 
+        .rarity-section {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #cbd5e0;
+        }
+
+        .rarity-section h4 {
+            font-size: 1.2em;
+            color: #2d3748;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .rarity-section ul {
+            margin-bottom: 10px;
+        }
+
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
             h1 {
-                font-size: 2rem;
+                font-size: 2.5rem; /* Adjusted for smaller screens */
             }
             .pull-button, .reset-button {
                 font-size: 1.1em;
@@ -217,7 +238,7 @@
                 padding: 20px;
             }
             h1 {
-                font-size: 1.8rem;
+                font-size: 2rem; /* Adjusted for smallest screens */
             }
             .pull-button, .reset-button {
                 font-size: 1em;
@@ -236,8 +257,8 @@
     </style>
 </head>
 <body>
+    <h1>Valhala Gacha Simulator</h1>
     <div class="container">
-        <h1>Valhala Gacha Simulator</h1>
         <div class="button-group">
             <button id="pull10Button" class="pull-button">Pull 10 Cards!</button>
             <button id="pullMoreButton" class="pull-button" style="display: none;">Pull 10 More!</button>
@@ -251,10 +272,13 @@
         <div id="statistics">
             <h2>Pull Statistics</h2>
             <p>Total Pulls: <span id="totalPullsCount">0</span></p>
+            <p>Total SSRs Pulled: <span id="totalSSRPullsCount">0</span></p>
+            <p>Total Commons Pulled: <span id="totalCommonPullsCount">0</span></p>
+            
             <h3>Cards Pulled:</h3>
-            <ul id="pulledCardsList">
-                <!-- Pulled card statistics will appear here -->
-            </ul>
+            <div id="pulledCardsList">
+                <!-- Pulled card statistics will appear here, separated by rarity -->
+            </div>
         </div>
     </div>
 
@@ -262,27 +286,42 @@
         // Define your pool of cards with names, rarities, and their individual probabilities.
         // The probabilities are set so that SSR cards have a cumulative total of 4%,
         // and Common cards have a cumulative total of 96%.
+
+        // Number of SSR cards
+        const numSSR = 7; 
+        // Number of Common cards
+        const numCommon = 13; 
+        // Total probability for SSR cards
+        const ssrTotalProb = 0.04; 
+        // Total probability for Common cards
+        const commonTotalProb = 0.96; 
+
+        // Individual probability for each SSR card
+        const ssrIndividualProb = ssrTotalProb / numSSR;
+        // Individual probability for each Common card
+        const commonIndividualProb = commonTotalProb / numCommon;
+
         const cardPool = [
-            { name: "Mila", rarity: "Common", probability: (0.96 / 14) }, // 14 Common cards
-            { name: "Daila", rarity: "SSR", probability: (0.04 / 6) },   // 6 SSR cards
-            { name: "Luna", rarity: "SSR", probability: (0.04 / 6) },
-            { name: "Sopa", rarity: "SSR", probability: (0.04 / 6) },
-            { name: "Susana", rarity: "SSR", probability: (0.04 / 6) }, // Changed from Suzana to Susana
-            { name: "Nick", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Jukru", rarity: "SSR", probability: (0.04 / 6) },
-            { name: "Adachi", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Marin", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Sabrina", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Heeg", rarity: "SSR", probability: (0.04 / 6) }, 
-            { name: "KZ", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Marco Marcial", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Vini", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Merilo", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Zika", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Martelli", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Masaru", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Santanna", rarity: "Common", probability: (0.96 / 14) },
-            { name: "Freire", rarity: "Common", probability: (0.96 / 14) }
+            { name: "Mila", rarity: "Common", probability: commonIndividualProb }, 
+            { name: "Daila", rarity: "SSR", probability: ssrIndividualProb },   
+            { name: "Luna", rarity: "SSR", probability: ssrIndividualProb },
+            { name: "Sopa", rarity: "SSR", probability: ssrIndividualProb },
+            { name: "Susana", rarity: "SSR", probability: ssrIndividualProb }, 
+            { name: "Nick", rarity: "Common", probability: commonIndividualProb },
+            { name: "Jukru", rarity: "SSR", probability: ssrIndividualProb },
+            { name: "Adachi", rarity: "Common", probability: commonIndividualProb },
+            { name: "Marin", rarity: "Common", probability: commonIndividualProb },
+            { name: "Sabrina", rarity: "Common", probability: commonIndividualProb },
+            { name: "Heeg", rarity: "SSR", probability: ssrIndividualProb }, 
+            { name: "KZ", rarity: "Common", probability: commonIndividualProb },
+            { name: "Marco Marcial", rarity: "Common", probability: commonIndividualProb },
+            { name: "Vini", rarity: "Common", probability: commonIndividualProb },
+            { name: "Merilo", rarity: "Common", probability: commonIndividualProb },
+            { name: "Zika", rarity: "Common", probability: commonIndividualProb },
+            { name: "Martelli", "rarity": "Common", "probability": commonIndividualProb },
+            { name: "Masaru", rarity: "SSR", probability: ssrIndividualProb }, 
+            { name: "Santanna", rarity: "Common", probability: commonIndividualProb },
+            { name: "Freire", rarity: "Common", probability: commonIndividualProb }
         ];
 
         // Get references to the HTML elements
@@ -291,10 +330,14 @@
         const resetButton = document.getElementById('resetButton');
         const resultsDiv = document.getElementById('results');
         const totalPullsCountSpan = document.getElementById('totalPullsCount');
+        const totalSSRPullsCountSpan = document.getElementById('totalSSRPullsCount'); 
+        const totalCommonPullsCountSpan = document.getElementById('totalCommonPullsCount'); 
         const pulledCardsList = document.getElementById('pulledCardsList');
 
         // Statistics variables
         let totalPulls = 0;
+        let totalSSRPulls = 0; 
+        let totalCommonPulls = 0; 
         // Stores counts for each unique card pulled: { "Card Name": count }
         let cardStatistics = {}; 
         // Stores the last 10 card DOM elements for display
@@ -326,7 +369,7 @@
                 randomNumber -= card.probability;
             }
             // Fallback: In case of tiny floating-point inaccuracies, this ensures a card is always returned.
-            // It should theoretically not be reached if probabilities sum exactly to 1.
+            // This line ensures a card is returned even if the loop completes without a match due to floating point precision.
             return cardPool[cardPool.length - 1];
         }
 
@@ -337,6 +380,15 @@
         function updateStatistics(card) {
             totalPulls++;
             totalPullsCountSpan.textContent = totalPulls;
+
+            // Increment rarity-specific counts
+            if (card.rarity === 'SSR') {
+                totalSSRPulls++;
+                totalSSRPullsCountSpan.textContent = totalSSRPulls;
+            } else if (card.rarity === 'Common') {
+                totalCommonPulls++;
+                totalCommonPullsCountSpan.textContent = totalCommonPulls;
+            }
 
             // Increment count for the pulled card
             cardStatistics[card.name] = (cardStatistics[card.name] || 0) + 1;
@@ -350,19 +402,51 @@
          */
         function renderStatistics() {
             pulledCardsList.innerHTML = ''; // Clear previous list
-            // Sort cards alphabetically by name for consistent display
-            const sortedCardNames = Object.keys(cardStatistics).sort();
 
-            sortedCardNames.forEach(cardName => {
-                const count = cardStatistics[cardName];
-                // Find the rarity of the card from the original pool
+            const ssrCards = [];
+            const commonCards = [];
+
+            // Separate cards by rarity
+            Object.keys(cardStatistics).sort().forEach(cardName => {
                 const cardInfo = cardPool.find(c => c.name === cardName);
-                const rarity = cardInfo ? cardInfo.rarity : 'Unknown Rarity';
-
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `<strong>${cardName}</strong> (${rarity}): <span>${count}</span>`;
-                pulledCardsList.appendChild(listItem);
+                if (cardInfo) {
+                    if (cardInfo.rarity === 'SSR') {
+                        ssrCards.push({ name: cardName, rarity: cardInfo.rarity, count: cardStatistics[cardName] });
+                    } else if (cardInfo.rarity === 'Common') {
+                        commonCards.push({ name: cardName, rarity: cardInfo.rarity, count: cardStatistics[cardName] });
+                    }
+                }
             });
+
+            // Create and append SSR section
+            if (ssrCards.length > 0) {
+                const ssrSection = document.createElement('div');
+                ssrSection.classList.add('rarity-section');
+                ssrSection.innerHTML = '<h4>SSR Cards</h4>';
+                const ssrList = document.createElement('ul');
+                ssrCards.forEach(card => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `<strong>${card.name}</strong> (${card.rarity}): <span>${card.count}</span>`;
+                    ssrList.appendChild(listItem);
+                });
+                ssrSection.appendChild(ssrList);
+                pulledCardsList.appendChild(ssrSection);
+            }
+
+            // Create and append Common section
+            if (commonCards.length > 0) {
+                const commonSection = document.createElement('div');
+                commonSection.classList.add('rarity-section');
+                commonSection.innerHTML = '<h4>Common Cards</h4>';
+                const commonList = document.createElement('ul');
+                commonCards.forEach(card => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `<strong>${card.name}</strong> (${card.rarity}): <span>${card.count}</span>`;
+                    commonList.appendChild(listItem);
+                });
+                commonSection.appendChild(commonList);
+                pulledCardsList.appendChild(commonSection);
+            }
         }
 
         /**
@@ -415,8 +499,13 @@
             last10CardsDisplayed = []; // Reset the array tracking displayed cards
 
             totalPulls = 0; // Reset total pulls
+            totalSSRPulls = 0; // Reset SSR pulls
+            totalCommonPulls = 0; // Reset Common pulls
             cardStatistics = {}; // Reset card statistics
+            
             totalPullsCountSpan.textContent = totalPulls; // Update display
+            totalSSRPullsCountSpan.textContent = totalSSRPulls; // Update SSR display
+            totalCommonPullsCountSpan.textContent = totalCommonPulls; // Update Common display
             pulledCardsList.innerHTML = ''; // Clear statistics list
             
             pull10Button.style.display = 'block'; // Show initial pull button
