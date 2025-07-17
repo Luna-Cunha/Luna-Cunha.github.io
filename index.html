@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valhala Gacha Simulator</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a better look and feel */
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter font as per instructions */
+            background-color: #f0f2f5; /* Light grey background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            margin: 0;
+            padding: 20px; /* Add some padding for smaller screens */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+
+        .container {
+            background-color: #ffffff; /* White background for the main container */
+            padding: 30px;
+            border-radius: 12px; /* More rounded corners */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Stronger shadow for depth */
+            text-align: center;
+            max-width: 900px; /* Max width for larger screens */
+            width: 100%; /* Full width on smaller screens */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #1a202c; /* Darker heading color */
+            margin-bottom: 30px;
+            font-size: 2.5rem; /* Larger font size for heading */
+            font-weight: 700; /* Bold font weight */
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px; /* Space between buttons */
+            margin-bottom: 25px;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            justify-content: center;
+        }
+
+        .pull-button, .reset-button {
+            color: white;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 8px; /* Rounded corners for button */
+            font-size: 1.25em; /* Larger font size */
+            cursor: pointer;
+            transition: all 0.3s ease; /* Smooth transition for hover effects */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow for button */
+            font-weight: 600;
+        }
+
+        .pull-button {
+            background-image: linear-gradient(to right, #6a11cb 0%, #2575fc 100%); /* Gradient background */
+        }
+
+        .pull-button:hover {
+            transform: translateY(-3px); /* Lift effect on hover */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Stronger shadow on hover */
+            opacity: 0.9;
+        }
+
+        .reset-button {
+            background-color: #dc3545; /* Red for reset button */
+            display: none; /* Hidden by default */
+        }
+
+        .reset-button:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+
+        #results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* Responsive grid for cards */
+            gap: 18px; /* More space between cards */
+            width: 100%;
+            justify-content: center;
+            margin-top: 20px;
+            padding: 10px; /* Padding around the grid */
+        }
+
+        .card {
+            background-color: #e0e7ff; /* Light blue background for cards */
+            border: 1px solid #c3dafe; /* Lighter border */
+            border-radius: 10px; /* Rounded corners for cards */
+            padding: 18px;
+            text-align: center;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for cards */
+            font-weight: bold;
+            color: #2a4365; /* Darker text color for cards */
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column; /* Allow content to stack */
+            align-items: center;
+            justify-content: center;
+            min-height: 80px; /* Minimum height for cards */
+            word-wrap: break-word; /* Ensure long card names wrap */
+        }
+
+        .card:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
+        }
+
+        .card-rarity {
+            font-size: 0.8em;
+            color: #6b7280; /* Grey color for rarity text */
+            margin-top: 5px;
+        }
+
+        #statistics {
+            background-color: #f8f8f8;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            width: 100%;
+            text-align: left;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        #statistics h2 {
+            font-size: 1.8rem;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #statistics p {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+
+        #statistics ul {
+            list-style: none; /* Remove default list style */
+            padding: 0;
+        }
+
+        #statistics ul li {
+            background-color: #edf2f7;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95em;
+            color: #2d3748;
+        }
+
+        #statistics ul li strong {
+            color: #3182ce; /* Blue color for card name */
+        }
+        
+        #statistics ul li span {
+            font-weight: bold;
+            color: #38a169; /* Green color for count */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .pull-button, .reset-button {
+                font-size: 1.1em;
+                padding: 12px 25px;
+            }
+            #results {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Adjust grid for smaller screens */
+                gap: 12px;
+            }
+            .card {
+                padding: 12px;
+                min-height: 70px;
+            }
+            .button-group {
+                flex-direction: column; /* Stack buttons vertically on small screens */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .pull-button, .reset-button {
+                font-size: 1em;
+                padding: 10px 20px;
+            }
+            #results {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+                gap: 10px;
+            }
+            .card {
+                font-size: 0.9em;
+                padding: 10px;
+                min-height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Valhala Gacha Simulator</h1>
+        <div class="button-group">
+            <button id="pull10Button" class="pull-button">Pull 10 Cards!</button>
+            <button id="pullMoreButton" class="pull-button" style="display: none;">Pull 10 More!</button>
+            <button id="resetButton" class="reset-button">Reset Simulator</button>
+        </div>
+        
+        <div id="results">
+            <!-- Pulled cards will appear here -->
+        </div>
+
+        <div id="statistics">
+            <h2>Pull Statistics</h2>
+            <p>Total Pulls: <span id="totalPullsCount">0</span></p>
+            <h3>Cards Pulled:</h3>
+            <ul id="pulledCardsList">
+                <!-- Pulled card statistics will appear here -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Define your pool of cards with names, rarities, and their individual probabilities.
+        // The probabilities are set so that SSR cards have a cumulative total of 4%,
+        // and Common cards have a cumulative total of 96%.
+        const cardPool = [
+            { name: "Mila", rarity: "Common", probability: (0.96 / 14) }, // 14 Common cards
+            { name: "Daila", rarity: "SSR", probability: (0.04 / 6) },   // 6 SSR cards
+            { name: "Luna", rarity: "SSR", probability: (0.04 / 6) },
+            { name: "Sopa", rarity: "SSR", probability: (0.04 / 6) },
+            { name: "Suzana", rarity: "SSR", probability: (0.04 / 6) },
+            { name: "Nick", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Jukru", rarity: "SSR", probability: (0.04 / 6) },
+            { name: "Adachi", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Marin", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Sabrina", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Heeg", rarity: "SSR", probability: (0.04 / 6) }, 
+            { name: "KZ", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Marco Marcial", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Vini", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Merilo", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Zika", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Martelli", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Masaru", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Santanna", rarity: "Common", probability: (0.96 / 14) },
+            { name: "Freire", rarity: "Common", probability: (0.96 / 14) }
+        ];
+
+        // Get references to the HTML elements
+        const pull10Button = document.getElementById('pull10Button');
+        const pullMoreButton = document.getElementById('pullMoreButton');
+        const resetButton = document.getElementById('resetButton');
+        const resultsDiv = document.getElementById('results');
+        const totalPullsCountSpan = document.getElementById('totalPullsCount');
+        const pulledCardsList = document.getElementById('pulledCardsList');
+
+        // Statistics variables
+        let totalPulls = 0;
+        // Stores counts for each unique card pulled: { "Card Name": count }
+        let cardStatistics = {}; 
+        // Stores the last 10 card DOM elements for display
+        let last10CardsDisplayed = [];
+
+        /**
+         * @brief Gets a random card from the predefined cardPool based on their probabilities.
+         * This function implements a weighted random selection.
+         * @returns {object} The randomly selected card object (name and rarity).
+         */
+        function getRandomCard() {
+            // Calculate the sum of all probabilities to ensure the random number is within the correct range.
+            // In this case, it should sum to 1.0 (or very close due to floating point arithmetic).
+            let totalProbability = 0;
+            for (const card of cardPool) {
+                totalProbability += card.probability;
+            }
+
+            // Generate a random number between 0 (inclusive) and totalProbability (exclusive).
+            // This number will determine which card is picked based on its weight.
+            let randomNumber = Math.random() * totalProbability;
+
+            // Iterate through the card pool, subtracting each card's probability from the random number.
+            // The card for which the random number becomes less than its probability is the selected card.
+            for (const card of cardPool) {
+                if (randomNumber < card.probability) {
+                    return card; // Found the card based on its weighted probability
+                }
+                randomNumber -= card.probability;
+            }
+            // Fallback: In case of tiny floating-point inaccuracies, this ensures a card is always returned.
+            // It should theoretically not be reached if probabilities sum exactly to 1.
+            return cardPool[cardPool.length - 1];
+        }
+
+        /**
+         * @brief Updates the statistics based on the pulled card.
+         * @param {object} card - The card object that was pulled.
+         */
+        function updateStatistics(card) {
+            totalPulls++;
+            totalPullsCountSpan.textContent = totalPulls;
+
+            // Increment count for the pulled card
+            cardStatistics[card.name] = (cardStatistics[card.name] || 0) + 1;
+
+            // Render updated statistics
+            renderStatistics();
+        }
+
+        /**
+         * @brief Renders the current pull statistics in the dedicated section.
+         */
+        function renderStatistics() {
+            pulledCardsList.innerHTML = ''; // Clear previous list
+            // Sort cards alphabetically by name for consistent display
+            const sortedCardNames = Object.keys(cardStatistics).sort();
+
+            sortedCardNames.forEach(cardName => {
+                const count = cardStatistics[cardName];
+                // Find the rarity of the card from the original pool
+                const cardInfo = cardPool.find(c => c.name === cardName);
+                const rarity = cardInfo ? cardInfo.rarity : 'Unknown Rarity';
+
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<strong>${cardName}</strong> (${rarity}): <span>${count}</span>`;
+                pulledCardsList.appendChild(listItem);
+            });
+        }
+
+        /**
+         * @brief Performs a 10-card pull, displays the results, and updates statistics.
+         */
+        function performPull() {
+            // Generate 10 new cards and add them to the display
+            for (let i = 0; i < 10; i++) {
+                const card = getRandomCard();
+                
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                
+                const cardNameElement = document.createElement('div');
+                cardNameElement.textContent = card.name;
+                cardElement.appendChild(cardNameElement);
+
+                const cardRarityElement = document.createElement('div');
+                cardRarityElement.classList.add('card-rarity');
+                cardRarityElement.textContent = `Rarity: ${card.rarity}`;
+                cardElement.appendChild(cardRarityElement);
+                
+                resultsDiv.appendChild(cardElement);
+                last10CardsDisplayed.push(cardElement); // Add to our tracking array
+
+                updateStatistics(card); // Update statistics for each pulled card
+            }
+
+            // Ensure only the last 10 cards are displayed
+            while (last10CardsDisplayed.length > 10) {
+                const oldestCard = last10CardsDisplayed.shift(); // Remove from beginning of array
+                resultsDiv.removeChild(oldestCard); // Remove from DOM
+            }
+
+            // Adjust button visibility
+            pull10Button.style.display = 'none'; // Hide initial pull button
+            pullMoreButton.style.display = 'block'; // Show "Pull 10 More" button
+            resetButton.style.display = 'block'; // Show reset button
+        }
+
+        /**
+         * @brief Resets the simulator by clearing results, statistics, and restoring button visibility.
+         */
+        function resetSimulator() {
+            resultsDiv.innerHTML = ''; // Clear results from DOM
+            last10CardsDisplayed = []; // Reset the array tracking displayed cards
+
+            totalPulls = 0; // Reset total pulls
+            cardStatistics = {}; // Reset card statistics
+            totalPullsCountSpan.textContent = totalPulls; // Update display
+            pulledCardsList.innerHTML = ''; // Clear statistics list
+            
+            pull10Button.style.display = 'block'; // Show initial pull button
+            pullMoreButton.style.display = 'none'; // Hide "Pull 10 More" button
+            resetButton.style.display = 'none'; // Hide reset button
+        }
+
+        // Add event listeners to the buttons
+        pull10Button.addEventListener('click', performPull); 
+        pullMoreButton.addEventListener('click', performPull);
+        resetButton.addEventListener('click', resetSimulator);
+
+        // Initialize statistics display on load
+        renderStatistics();
+    </script>
+</body>
+</html>
