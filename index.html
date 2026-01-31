@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O Enigma Submarino</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>O Enigma submarino</title>
     <style>
         :root {
             --stone-color: #2c3e50;
@@ -20,9 +20,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100-vh;
+            min-height: 100vh;
             overflow: hidden;
             color: #ecf0f1;
+            touch-action: none; /* Impede scroll enquanto arrasta no celular */
         }
 
         /* Fundo de Partículas/Bolhas */
@@ -52,67 +53,76 @@
 
         /* Parede de Atlantis */
         .wall-container {
-            width: 90%;
+            width: 95%;
             max-width: 800px;
             background: #3a4a4d;
             background-image: 
                 url('https://www.transparenttextures.com/patterns/carbon-fibre.png'),
                 linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.4) 100%);
-            border: 15px solid #222;
+            border: 10px solid #222;
             border-image: linear-gradient(#2c3e50, #1a252f) 30;
             box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.5);
-            padding: 40px;
+            padding: 20px;
             text-align: center;
             position: relative;
             border-radius: 5px;
-            /* Efeito de pedra desgastada */
+            box-sizing: border-box;
         }
 
         .wall-container::before {
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 255, 128, 0.05); /* Musgo leve */
+            background: rgba(0, 255, 128, 0.05);
             pointer-events: none;
         }
 
         h1 {
             font-family: serif;
-            letter-spacing: 5px;
+            font-size: 1.5rem;
+            letter-spacing: 3px;
             text-transform: uppercase;
             color: #bdc3c7;
             text-shadow: 0 0 10px var(--glow-cyan);
-            margin-bottom: 30px;
+            margin-bottom: 15px;
         }
 
         .instruction {
+            font-size: 0.9rem;
             font-style: italic;
             margin-bottom: 20px;
             color: #7f8c8d;
+            padding: 0 10px;
         }
 
         /* Slots do Jogo */
         .slots-area {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            padding: 20px;
-            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+            flex-wrap: nowrap; /* Garante uma linha no celular */
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .symbol-slot {
-            width: 120px;
-            height: 120px;
+            width: 20vw; /* Responsivo baseado na largura da tela */
+            height: 20vw;
+            max-width: 120px;
+            max-height: 120px;
             background: rgba(0, 0, 0, 0.4);
-            border: 4px inset #111;
+            border: 3px inset #111;
             border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: grab;
-            transition: all 0.3s ease;
+            transition: transform 0.2s, box-shadow 0.2s;
             position: relative;
-            box-shadow: inset 0 0 20px #000;
+            box-shadow: inset 0 0 15px #000;
+            user-select: none;
+            -webkit-user-drag: none;
         }
 
         .symbol-slot:active {
@@ -125,27 +135,29 @@
             object-fit: contain;
             pointer-events: none;
             filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
-            transition: filter 0.3s;
         }
 
         .symbol-slot.dragging {
             opacity: 0.5;
             transform: scale(1.1);
+            box-shadow: 0 0 20px var(--glow-cyan);
+            z-index: 10;
         }
 
         /* Botão */
         .btn-open {
-            margin-top: 40px;
-            padding: 15px 40px;
+            margin-top: 30px;
+            padding: 12px 30px;
             background: #1a252f;
             border: 2px solid var(--glow-cyan);
             color: var(--glow-cyan);
             text-transform: uppercase;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.4s;
             box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+            font-size: 0.9rem;
         }
 
         .btn-open:hover {
@@ -161,32 +173,24 @@
             box-shadow: none;
         }
 
-        /* Feedback */
         #message-box {
             margin-top: 20px;
-            height: 30px;
+            height: 40px;
             font-weight: bold;
-            letter-spacing: 1px;
+            font-size: 0.85rem;
+            padding: 0 10px;
         }
 
         .success { color: #2ecc71; text-shadow: 0 0 10px #2ecc71; }
         .error { color: #e74c3c; text-shadow: 0 0 10px #e74c3c; }
 
-        /* Animação da Porta Abrindo */
         .door-animation {
             animation: openDoor 2s forwards ease-in-out;
         }
 
         @keyframes openDoor {
-            0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+            0% { transform: scale(1); opacity: 1; }
             100% { transform: scale(1.5); opacity: 0; filter: brightness(3) blur(10px); }
-        }
-
-        @media (max-width: 600px) {
-            .symbol-slot {
-                width: 80px;
-                height: 80px;
-            }
         }
     </style>
 </head>
@@ -195,11 +199,11 @@
     <div class="ocean-bg" id="bubbles"></div>
 
     <div class="wall-container" id="mainWall">
-        <h1>Codigo Submarino</h1>
-        <p class="instruction">Repreposicione os selos antigos na ordem sagrada para abrir o caminho.</p>
+        <h1>Porta submarina</h1>
+        <p class="instruction">Arraste os selos para colocá-los na ordem correta.</p>
         
         <div class="slots-area" id="slotsArea">
-            <!-- Slots serão gerados via JS -->
+            <!-- Slots gerados via JS -->
         </div>
 
         <div id="message-box"></div>
@@ -208,7 +212,6 @@
     </div>
 
     <script>
-        // Configuração dos Símbolos
         const ALL_SYMBOLS = [
             { id: 1, src: 's1.png' },
             { id: 2, src: 's2.png' },
@@ -220,14 +223,14 @@
         ];
 
         let selectedSymbols = [];
+        let dragSrcEl = null;
 
-        // Inicializar bolhas de fundo
         function createBubbles() {
             const container = document.getElementById('bubbles');
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < 15; i++) {
                 const b = document.createElement('div');
                 b.className = 'bubble';
-                const size = Math.random() * 40 + 10 + 'px';
+                const size = Math.random() * 30 + 10 + 'px';
                 b.style.width = size;
                 b.style.height = size;
                 b.style.left = Math.random() * 100 + '%';
@@ -237,15 +240,10 @@
             }
         }
 
-        // Iniciar Jogo
         function initGame() {
-            // Selecionar 4 símbolos aleatórios
             const shuffled = [...ALL_SYMBOLS].sort(() => 0.5 - Math.random());
             selectedSymbols = shuffled.slice(0, 4);
-            
-            // Embaralhar a ordem inicial para o jogador
             const displayOrder = [...selectedSymbols].sort(() => 0.5 - Math.random());
-            
             renderSlots(displayOrder);
         }
 
@@ -258,61 +256,92 @@
                 slot.className = 'symbol-slot';
                 slot.draggable = true;
                 slot.dataset.id = item.id;
-                slot.dataset.index = index;
                 
                 const img = document.createElement('img');
                 img.src = item.src;
-                img.alt = `Símbolo ${item.id}`;
-                img.onerror = () => { img.src = `https://via.placeholder.com/100?text=S${item.id}`; };
+                img.alt = `S${item.id}`;
+                img.onerror = () => { img.src = `https://via.placeholder.com/100/002b36/00f2ff?text=S${item.id}`; };
                 
                 slot.appendChild(img);
                 
-                // Eventos de Drag and Drop
+                // Eventos Mouse (Desktop)
                 slot.addEventListener('dragstart', handleDragStart);
                 slot.addEventListener('dragover', handleDragOver);
                 slot.addEventListener('drop', handleDrop);
                 slot.addEventListener('dragend', handleDragEnd);
                 
+                // Eventos Touch (Mobile)
+                slot.addEventListener('touchstart', handleTouchStart, {passive: false});
+                slot.addEventListener('touchmove', handleTouchMove, {passive: false});
+                slot.addEventListener('touchend', handleTouchEnd);
+                
                 area.appendChild(slot);
             });
         }
 
-        let dragSrcEl = null;
+        // Função universal de troca
+        function swapElements(src, target) {
+            if (!src || !target || src === target) return;
+            
+            const tempHtml = src.innerHTML;
+            const tempId = src.dataset.id;
 
+            src.innerHTML = target.innerHTML;
+            src.dataset.id = target.dataset.id;
+
+            target.innerHTML = tempHtml;
+            target.dataset.id = tempId;
+        }
+
+        // Lógica Desktop
         function handleDragStart(e) {
             this.classList.add('dragging');
             dragSrcEl = this;
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', this.innerHTML);
-            e.dataTransfer.setData('symbol-id', this.dataset.id);
         }
 
         function handleDragOver(e) {
             if (e.preventDefault) e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
             return false;
         }
 
         function handleDrop(e) {
             if (e.stopPropagation) e.stopPropagation();
-
-            if (dragSrcEl !== this) {
-                // Troca o conteúdo visual e o ID dos datasets
-                const targetId = this.dataset.id;
-                const sourceId = e.dataTransfer.getData('symbol-id');
-
-                dragSrcEl.innerHTML = this.innerHTML;
-                dragSrcEl.dataset.id = targetId;
-
-                this.innerHTML = e.dataTransfer.getData('text/html');
-                this.dataset.id = sourceId;
-            }
+            swapElements(dragSrcEl, this);
             return false;
         }
 
         function handleDragEnd() {
-            const slots = document.querySelectorAll('.symbol-slot');
-            slots.forEach(s => s.classList.remove('dragging'));
+            this.classList.remove('dragging');
+        }
+
+        // Lógica Mobile (Touch)
+        let activeTouchElement = null;
+
+        function handleTouchStart(e) {
+            dragSrcEl = this;
+            this.classList.add('dragging');
+            // Impede scroll da página enquanto interage com o jogo
+            // e.preventDefault(); 
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault(); // Impede scroll
+            const touch = e.touches[0];
+            // Opcional: mover um ghost element aqui, mas o swap no final é mais simples para este layout
+        }
+
+        function handleTouchEnd(e) {
+            this.classList.remove('dragging');
+            const touch = e.changedTouches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            // Verifica se o alvo é um slot ou filho de um slot
+            const targetSlot = target?.closest('.symbol-slot');
+            
+            if (targetSlot && targetSlot !== this) {
+                swapElements(this, targetSlot);
+            }
         }
 
         function checkOrder() {
@@ -320,26 +349,22 @@
             const currentIds = Array.from(slots).map(s => parseInt(s.dataset.id));
             const msgBox = document.getElementById('message-box');
             
-            // A ordem correta é os IDs selecionados em ordem crescente
             const correctIds = [...currentIds].sort((a, b) => a - b);
-            
             const isCorrect = currentIds.every((val, index) => val === correctIds[index]);
 
             if (isCorrect) {
-                msgBox.innerHTML = '<span class="success">OS MECANISMOS SE ENCAIXAM! A PORTA SE ABRE...</span>';
+                msgBox.innerHTML = '<span class="success">Sincronia perfeita! A porta se abre...</span>';
                 document.querySelector('.btn-open').disabled = true;
                 
-                // Efeito de vitória
                 setTimeout(() => {
                     document.getElementById('mainWall').classList.add('door-animation');
                     setTimeout(() => {
-                        alert("Com um estrondo, a porta começa a deslizar para baixo revelando o que tem a frente!");
+                        alert("Você decifrou o enigma.");
                         location.reload();
                     }, 2000);
-                }, 1000);
+                }, 800);
             } else {
-                msgBox.innerHTML = '<span class="error">NADA ACONTECE. A ORDEM PARECE INCORRETA.</span>';
-                // Tremer a parede
+                msgBox.innerHTML = '<span class="error">A energia não flui. Tente outra combinação.</span>';
                 const wall = document.getElementById('mainWall');
                 wall.style.transform = 'translateX(5px)';
                 setTimeout(() => wall.style.transform = 'translateX(-5px)', 50);
