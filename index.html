@@ -23,7 +23,7 @@
             min-height: 100vh;
             overflow: hidden;
             color: #ecf0f1;
-            touch-action: none; /* Impede scroll enquanto arrasta no celular */
+            touch-action: none;
         }
 
         /* Fundo de Partículas/Bolhas */
@@ -53,7 +53,7 @@
 
         /* Parede de Atlantis */
         .wall-container {
-            width: 95%;
+            width: 98%;
             max-width: 800px;
             background: #3a4a4d;
             background-image: 
@@ -62,7 +62,7 @@
             border: 10px solid #222;
             border-image: linear-gradient(#2c3e50, #1a252f) 30;
             box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.5);
-            padding: 20px;
+            padding: 20px 10px;
             text-align: center;
             position: relative;
             border-radius: 5px;
@@ -79,40 +79,40 @@
 
         h1 {
             font-family: serif;
-            font-size: 1.5rem;
-            letter-spacing: 3px;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
             text-transform: uppercase;
             color: #bdc3c7;
             text-shadow: 0 0 10px var(--glow-cyan);
-            margin-bottom: 15px;
+            margin: 0 0 10px 0;
         }
 
         .instruction {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-style: italic;
             margin-bottom: 20px;
             color: #7f8c8d;
-            padding: 0 10px;
         }
 
         /* Slots do Jogo */
         .slots-area {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            padding: 10px;
-            flex-wrap: nowrap; /* Garante uma linha no celular */
+            align-items: center;
+            gap: 8px;
+            padding: 5px;
+            flex-wrap: nowrap; /* Força uma única linha */
             width: 100%;
             box-sizing: border-box;
+            overflow: hidden;
         }
 
         .symbol-slot {
-            width: 20vw; /* Responsivo baseado na largura da tela */
-            height: 20vw;
-            max-width: 120px;
-            max-height: 120px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 3px inset #111;
+            flex: 0 1 22%; /* Permite encolher mas não crescer demais, base 22% */
+            aspect-ratio: 1 / 1;
+            max-width: 110px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px inset #111;
             border-radius: 8px;
             display: flex;
             justify-content: center;
@@ -122,7 +122,6 @@
             position: relative;
             box-shadow: inset 0 0 15px #000;
             user-select: none;
-            -webkit-user-drag: none;
         }
 
         .symbol-slot:active {
@@ -130,24 +129,24 @@
         }
 
         .symbol-slot img {
-            width: 80%;
-            height: 80%;
+            width: 85%;
+            height: 85%;
             object-fit: contain;
-            pointer-events: none;
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+            pointer-events: none; /* Crucial para o drop funcionar no slot e não na imagem */
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.1));
         }
 
         .symbol-slot.dragging {
-            opacity: 0.5;
-            transform: scale(1.1);
+            opacity: 0.4;
+            transform: scale(1.05);
             box-shadow: 0 0 20px var(--glow-cyan);
             z-index: 10;
         }
 
         /* Botão */
         .btn-open {
-            margin-top: 30px;
-            padding: 12px 30px;
+            margin-top: 25px;
+            padding: 12px 35px;
             background: #1a252f;
             border: 2px solid var(--glow-cyan);
             color: var(--glow-cyan);
@@ -167,18 +166,17 @@
         }
 
         .btn-open:disabled {
-            border-color: #555;
-            color: #555;
+            border-color: #444;
+            color: #444;
             cursor: not-allowed;
             box-shadow: none;
         }
 
         #message-box {
-            margin-top: 20px;
-            height: 40px;
+            margin-top: 15px;
+            min-height: 25px;
             font-weight: bold;
-            font-size: 0.85rem;
-            padding: 0 10px;
+            font-size: 0.8rem;
         }
 
         .success { color: #2ecc71; text-shadow: 0 0 10px #2ecc71; }
@@ -190,7 +188,7 @@
 
         @keyframes openDoor {
             0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(1.5); opacity: 0; filter: brightness(3) blur(10px); }
+            100% { transform: scale(1.4); opacity: 0; filter: brightness(3) blur(15px); }
         }
     </style>
 </head>
@@ -200,7 +198,7 @@
 
     <div class="wall-container" id="mainWall">
         <h1>Porta submarina</h1>
-        <p class="instruction">Arraste os selos para colocá-los na ordem correta.</p>
+        <p class="instruction">Posicione os símbolos na ordem correta.</p>
         
         <div class="slots-area" id="slotsArea">
             <!-- Slots gerados via JS -->
@@ -222,7 +220,6 @@
             { id: 7, src: 's7.png' }
         ];
 
-        let selectedSymbols = [];
         let dragSrcEl = null;
 
         function createBubbles() {
@@ -230,20 +227,20 @@
             for (let i = 0; i < 15; i++) {
                 const b = document.createElement('div');
                 b.className = 'bubble';
-                const size = Math.random() * 30 + 10 + 'px';
+                const size = Math.random() * 25 + 10 + 'px';
                 b.style.width = size;
                 b.style.height = size;
                 b.style.left = Math.random() * 100 + '%';
                 b.style.animationDelay = Math.random() * 5 + 's';
-                b.style.animationDuration = Math.random() * 5 + 10 + 's';
+                b.style.animationDuration = Math.random() * 6 + 8 + 's';
                 container.appendChild(b);
             }
         }
 
         function initGame() {
             const shuffled = [...ALL_SYMBOLS].sort(() => 0.5 - Math.random());
-            selectedSymbols = shuffled.slice(0, 4);
-            const displayOrder = [...selectedSymbols].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 4);
+            const displayOrder = [...selected].sort(() => 0.5 - Math.random());
             renderSlots(displayOrder);
         }
 
@@ -251,7 +248,7 @@
             const area = document.getElementById('slotsArea');
             area.innerHTML = '';
             
-            items.forEach((item, index) => {
+            items.forEach((item) => {
                 const slot = document.createElement('div');
                 slot.className = 'symbol-slot';
                 slot.draggable = true;
@@ -264,13 +261,13 @@
                 
                 slot.appendChild(img);
                 
-                // Eventos Mouse (Desktop)
+                // Desktop
                 slot.addEventListener('dragstart', handleDragStart);
                 slot.addEventListener('dragover', handleDragOver);
                 slot.addEventListener('drop', handleDrop);
                 slot.addEventListener('dragend', handleDragEnd);
                 
-                // Eventos Touch (Mobile)
+                // Mobile
                 slot.addEventListener('touchstart', handleTouchStart, {passive: false});
                 slot.addEventListener('touchmove', handleTouchMove, {passive: false});
                 slot.addEventListener('touchend', handleTouchEnd);
@@ -279,7 +276,6 @@
             });
         }
 
-        // Função universal de troca
         function swapElements(src, target) {
             if (!src || !target || src === target) return;
             
@@ -293,21 +289,28 @@
             target.dataset.id = tempId;
         }
 
-        // Lógica Desktop
+        // --- HANDLERS DESKTOP ---
         function handleDragStart(e) {
             this.classList.add('dragging');
             dragSrcEl = this;
             e.dataTransfer.effectAllowed = 'move';
+            // Necessário para o Firefox
+            e.dataTransfer.setData('text/plain', ''); 
         }
 
         function handleDragOver(e) {
             if (e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
             return false;
         }
 
         function handleDrop(e) {
             if (e.stopPropagation) e.stopPropagation();
-            swapElements(dragSrcEl, this);
+            if (e.preventDefault) e.preventDefault();
+            
+            // Garante que estamos pegando o slot mesmo se soltar na borda
+            const target = e.target.closest('.symbol-slot');
+            if (target) swapElements(dragSrcEl, target);
             return false;
         }
 
@@ -315,28 +318,21 @@
             this.classList.remove('dragging');
         }
 
-        // Lógica Mobile (Touch)
-        let activeTouchElement = null;
-
+        // --- HANDLERS MOBILE ---
         function handleTouchStart(e) {
             dragSrcEl = this;
             this.classList.add('dragging');
-            // Impede scroll da página enquanto interage com o jogo
-            // e.preventDefault(); 
         }
 
         function handleTouchMove(e) {
-            e.preventDefault(); // Impede scroll
-            const touch = e.touches[0];
-            // Opcional: mover um ghost element aqui, mas o swap no final é mais simples para este layout
+            // Prevenir scroll durante o movimento
+            if (e.cancelable) e.preventDefault();
         }
 
         function handleTouchEnd(e) {
             this.classList.remove('dragging');
             const touch = e.changedTouches[0];
             const target = document.elementFromPoint(touch.clientX, touch.clientY);
-            
-            // Verifica se o alvo é um slot ou filho de um slot
             const targetSlot = target?.closest('.symbol-slot');
             
             if (targetSlot && targetSlot !== this) {
@@ -349,22 +345,22 @@
             const currentIds = Array.from(slots).map(s => parseInt(s.dataset.id));
             const msgBox = document.getElementById('message-box');
             
-            const correctIds = [...currentIds].sort((a, b) => a - b);
-            const isCorrect = currentIds.every((val, index) => val === correctIds[index]);
+            const sortedIds = [...currentIds].sort((a, b) => a - b);
+            const isCorrect = currentIds.every((val, index) => val === sortedIds[index]);
 
             if (isCorrect) {
-                msgBox.innerHTML = '<span class="success">Sincronia perfeita! A porta se abre...</span>';
+                msgBox.innerHTML = '<span class="success">OS SELOS REAGEM! O PORTAL SE ABRE...</span>';
                 document.querySelector('.btn-open').disabled = true;
                 
                 setTimeout(() => {
                     document.getElementById('mainWall').classList.add('door-animation');
                     setTimeout(() => {
-                        alert("Você decifrou o enigma.");
+                        alert("Você provou sua sabedoria e abriu a porta!");
                         location.reload();
                     }, 2000);
                 }, 800);
             } else {
-                msgBox.innerHTML = '<span class="error">A energia não flui. Tente outra combinação.</span>';
+                msgBox.innerHTML = '<span class="error">OS SÍMBOLOS PERMANECEM INERTES. REORDENE-OS.</span>';
                 const wall = document.getElementById('mainWall');
                 wall.style.transform = 'translateX(5px)';
                 setTimeout(() => wall.style.transform = 'translateX(-5px)', 50);
