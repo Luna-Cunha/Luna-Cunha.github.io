@@ -1,525 +1,356 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valhala Gacha Simulator</title>
-    <!-- Tailwind CSS CDN for easy styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>O Enigma Submarino</title>
     <style>
-        /* Custom styles for a better look and feel */
+        :root {
+            --stone-color: #2c3e50;
+            --moss-green: #1b4d3e;
+            --water-blue: #002b36;
+            --glow-cyan: #00f2ff;
+        }
+
         body {
-            font-family: 'Inter', sans-serif; /* Using Inter font as per instructions */
-            background-color: #f0f2f5; /* Light grey background */
+            margin: 0;
+            padding: 0;
+            background-color: var(--water-blue);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
-            flex-direction: column; /* Changed to column to stack title and container */
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Full viewport height */
-            margin: 0;
-            padding: 20px; /* Add some padding for smaller screens */
-            box-sizing: border-box; /* Include padding in element's total width and height */
+            min-height: 100-vh;
+            overflow: hidden;
+            color: #ecf0f1;
+        }
+
+        /* Fundo de Partículas/Bolhas */
+        .ocean-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #004d40 0%, #001a1a 100%);
+            z-index: -1;
+        }
+
+        .bubble {
+            position: absolute;
+            bottom: -50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: rise 10s infinite ease-in;
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.3; }
+            100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Parede de Atlantis */
+        .wall-container {
+            width: 90%;
+            max-width: 800px;
+            background: #3a4a4d;
+            background-image: 
+                url('https://www.transparenttextures.com/patterns/carbon-fibre.png'),
+                linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.4) 100%);
+            border: 15px solid #222;
+            border-image: linear-gradient(#2c3e50, #1a252f) 30;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 100px rgba(0,0,0,0.5);
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            border-radius: 5px;
+            /* Efeito de pedra desgastada */
+        }
+
+        .wall-container::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 255, 128, 0.05); /* Musgo leve */
+            pointer-events: none;
         }
 
         h1 {
-            color: #1a202c; /* Darker heading color */
-            margin-bottom: 30px; /* Space below the title */
-            font-size: 4.5rem; /* Larger font size for heading outside the box */
-            font-weight: 700; /* Bold font weight */
-            text-align: center; /* Center the title */
-            width: 100%; /* Ensure title takes full width to center */
-            padding: 0 10px; /* Add some horizontal padding */
+            font-family: serif;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: #bdc3c7;
+            text-shadow: 0 0 10px var(--glow-cyan);
+            margin-bottom: 30px;
         }
 
-        .container {
-            background-color: #ffffff; /* White background for the main container */
-            padding: 30px;
-            border-radius: 12px; /* More rounded corners */
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Stronger shadow for depth */
-            text-align: center;
-            max-width: 900px; /* Max width for larger screens */
-            width: 100%; /* Full width on smaller screens */
+        .instruction {
+            font-style: italic;
+            margin-bottom: 20px;
+            color: #7f8c8d;
+        }
+
+        /* Slots do Jogo */
+        .slots-area {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 15px; /* Space between buttons */
-            margin-bottom: 25px;
-            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
             justify-content: center;
-        }
-
-        .pull-button, .reset-button {
-            color: white;
-            padding: 15px 35px;
-            border: none;
-            border-radius: 8px; /* Rounded corners for button */
-            font-size: 1.25em; /* Larger font size */
-            cursor: pointer;
-            transition: all 0.3s ease; /* Smooth transition for hover effects */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow for button */
-            font-weight: 600;
-        }
-
-        .pull-button {
-            background-image: linear-gradient(to right, #6a11cb 0%, #2575fc 100%); /* Gradient background */
-        }
-
-        .pull-button:hover {
-            transform: translateY(-3px); /* Lift effect on hover */
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Stronger shadow on hover */
-            opacity: 0.9;
-        }
-
-        .reset-button {
-            background-color: #dc3545; /* Red for reset button */
-            display: none; /* Hidden by default */
-        }
-
-        .reset-button:hover {
-            background-color: #c82333;
-            transform: translateY(-2px);
-        }
-
-        #results {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* Responsive grid for cards */
-            gap: 18px; /* More space between cards */
-            width: 100%;
-            justify-content: center;
-            margin-top: 20px;
-            padding: 10px; /* Padding around the grid */
-        }
-
-        .card {
-            background-color: #e0e7ff; /* Light blue background for common cards */
-            border: 1px solid #c3dafe; /* Lighter border */
-            border-radius: 10px; /* Rounded corners for cards */
-            padding: 18px;
-            text-align: center;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for cards */
-            font-weight: bold;
-            color: #2a4365; /* Darker text color for cards */
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: flex;
-            flex-direction: column; /* Allow content to stack */
-            align-items: center;
-            justify-content: center;
-            min-height: 80px; /* Minimum height for cards */
-            word-wrap: break-word; /* Ensure long card names wrap */
-        }
-
-        .card:hover {
-            transform: translateY(-5px); /* Lift effect on hover */
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
-        }
-
-        /* SSR Card specific styling */
-        .card.ssr {
-            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3); /* Rainbow gradient */
-            background-size: 400% 400%; /* For animation */
-            animation: rainbow-glow 10s ease infinite; /* Animation for rainbow effect */
-            color: white; /* White text for better contrast on rainbow */
-            border: 2px solid #ffd700; /* Gold border for SSR */
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); /* Gold glow effect */
-        }
-
-        @keyframes rainbow-glow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .card-rarity {
-            font-size: 0.8em;
-            color: #6b7280; /* Grey color for rarity text */
-            margin-top: 5px;
-        }
-
-        .card.ssr .card-rarity {
-            color: #f0f0f0; /* Lighter color for rarity text on SSR cards */
-        }
-
-        #statistics {
-            background-color: #f8f8f8;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
+            gap: 20px;
             padding: 20px;
-            margin-top: 30px;
-            width: 100%;
-            text-align: left;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
         }
 
-        #statistics h2 {
-            font-size: 1.8rem;
-            color: #2d3748;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        #statistics p {
-            font-size: 1.1em;
-            margin-bottom: 8px;
-            color: #4a5568;
-        }
-
-        #statistics ul {
-            list-style: none; /* Remove default list style */
-            padding: 0;
-        }
-
-        #statistics ul li {
-            background-color: #edf2f7;
-            padding: 8px 12px;
-            margin-bottom: 5px;
-            border-radius: 5px;
+        .symbol-slot {
+            width: 120px;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 4px inset #111;
+            border-radius: 8px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            font-size: 0.95em;
-            color: #2d3748;
+            cursor: grab;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: inset 0 0 20px #000;
         }
 
-        #statistics ul li strong {
-            color: #3182ce; /* Blue color for card name */
+        .symbol-slot:active {
+            cursor: grabbing;
         }
-        
-        #statistics ul li span {
+
+        .symbol-slot img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            pointer-events: none;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+            transition: filter 0.3s;
+        }
+
+        .symbol-slot.dragging {
+            opacity: 0.5;
+            transform: scale(1.1);
+        }
+
+        /* Botão */
+        .btn-open {
+            margin-top: 40px;
+            padding: 15px 40px;
+            background: #1a252f;
+            border: 2px solid var(--glow-cyan);
+            color: var(--glow-cyan);
+            text-transform: uppercase;
+            letter-spacing: 3px;
             font-weight: bold;
-            color: #38a169; /* Green color for count */
+            cursor: pointer;
+            transition: all 0.4s;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
         }
 
-        .rarity-section {
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 1px dashed #cbd5e0;
+        .btn-open:hover {
+            background: var(--glow-cyan);
+            color: #1a252f;
+            box-shadow: 0 0 30px var(--glow-cyan);
         }
 
-        .rarity-section h4 {
-            font-size: 1.2em;
-            color: #2d3748;
-            margin-bottom: 10px;
-            text-align: center;
+        .btn-open:disabled {
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
-        .rarity-section ul {
-            margin-bottom: 10px;
+        /* Feedback */
+        #message-box {
+            margin-top: 20px;
+            height: 30px;
+            font-weight: bold;
+            letter-spacing: 1px;
         }
 
+        .success { color: #2ecc71; text-shadow: 0 0 10px #2ecc71; }
+        .error { color: #e74c3c; text-shadow: 0 0 10px #e74c3c; }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.5rem; /* Adjusted for smaller screens */
-            }
-            .pull-button, .reset-button {
-                font-size: 1.1em;
-                padding: 12px 25px;
-            }
-            #results {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Adjust grid for smaller screens */
-                gap: 12px;
-            }
-            .card {
-                padding: 12px;
-                min-height: 70px;
-            }
-            .button-group {
-                flex-direction: column; /* Stack buttons vertically on small screens */
-            }
+        /* Animação da Porta Abrindo */
+        .door-animation {
+            animation: openDoor 2s forwards ease-in-out;
         }
 
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px;
-            }
-            h1 {
-                font-size: 2rem; /* Adjusted for smallest screens */
-            }
-            .pull-button, .reset-button {
-                font-size: 1em;
-                padding: 10px 20px;
-            }
-            #results {
-                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-                gap: 10px;
-            }
-            .card {
-                font-size: 0.9em;
-                padding: 10px;
-                min-height: 60px;
+        @keyframes openDoor {
+            0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+            100% { transform: scale(1.5); opacity: 0; filter: brightness(3) blur(10px); }
+        }
+
+        @media (max-width: 600px) {
+            .symbol-slot {
+                width: 80px;
+                height: 80px;
             }
         }
     </style>
 </head>
 <body>
-    <h1>Valhala Gacha Simulator</h1>
-    <div class="container">
-        <div class="button-group">
-            <button id="pull10Button" class="pull-button">Pull 10 Cards!</button>
-            <button id="pullMoreButton" class="pull-button" style="display: none;">Pull 10 More!</button>
-            <button id="resetButton" class="reset-button">Reset Simulator</button>
-        </div>
+
+    <div class="ocean-bg" id="bubbles"></div>
+
+    <div class="wall-container" id="mainWall">
+        <h1>Codigo Submarino</h1>
+        <p class="instruction">Repreposicione os selos antigos na ordem sagrada para abrir o caminho.</p>
         
-        <div id="results">
-            <!-- Pulled cards will appear here -->
+        <div class="slots-area" id="slotsArea">
+            <!-- Slots serão gerados via JS -->
         </div>
 
-        <div id="statistics">
-            <h2>Pull Statistics</h2>
-            <p>Total Pulls: <span id="totalPullsCount">0</span></p>
-            <p>Total SSRs Pulled: <span id="totalSSRPullsCount">0</span></p>
-            <p>Total Commons Pulled: <span id="totalCommonPullsCount">0</span></p>
-            
-            <h3>Cards Pulled:</h3>
-            <div id="pulledCardsList">
-                <!-- Pulled card statistics will appear here, separated by rarity -->
-            </div>
-        </div>
+        <div id="message-box"></div>
+
+        <button class="btn-open" onclick="checkOrder()">Ativar Mecanismo</button>
     </div>
 
     <script>
-        // Define your pool of cards with names, rarities, and their individual probabilities.
-        // The probabilities are set so that SSR cards have a cumulative total of 4%,
-        // and Common cards have a cumulative total of 96%.
-
-        // Number of SSR cards
-        const numSSR = 7; 
-        // Number of Common cards
-        const numCommon = 13; 
-        // Total probability for SSR cards
-        const ssrTotalProb = 0.04; 
-        // Total probability for Common cards
-        const commonTotalProb = 0.96; 
-
-        // Individual probability for each SSR card
-        const ssrIndividualProb = ssrTotalProb / numSSR;
-        // Individual probability for each Common card
-        const commonIndividualProb = commonTotalProb / numCommon;
-
-        const cardPool = [
-            { name: "Mila", rarity: "Common", probability: commonIndividualProb }, 
-            { name: "Daila", rarity: "SSR", probability: ssrIndividualProb },   
-            { name: "Luna", rarity: "SSR", probability: ssrIndividualProb },
-            { name: "Sopa", rarity: "SSR", probability: ssrIndividualProb },
-            { name: "Susana", rarity: "SSR", probability: ssrIndividualProb }, 
-            { name: "Nick", rarity: "Common", probability: commonIndividualProb },
-            { name: "Jukru", rarity: "SSR", probability: ssrIndividualProb },
-            { name: "Adachi", rarity: "Common", probability: commonIndividualProb },
-            { name: "Marin", rarity: "Common", probability: commonIndividualProb },
-            { name: "Sabrina", rarity: "Common", probability: commonIndividualProb },
-            { name: "Heeg", rarity: "SSR", probability: ssrIndividualProb }, 
-            { name: "KZ", rarity: "Common", probability: commonIndividualProb },
-            { name: "Marco Marcial", rarity: "Common", probability: commonIndividualProb },
-            { name: "Vini", rarity: "Common", probability: commonIndividualProb },
-            { name: "Merilo", rarity: "Common", probability: commonIndividualProb },
-            { name: "Zika", rarity: "Common", probability: commonIndividualProb },
-            { name: "Martelli", "rarity": "Common", "probability": commonIndividualProb },
-            { name: "Masaru", rarity: "SSR", probability: ssrIndividualProb }, 
-            { name: "Santanna", rarity: "Common", probability: commonIndividualProb },
-            { name: "Freire", rarity: "Common", probability: commonIndividualProb }
+        // Configuração dos Símbolos
+        const ALL_SYMBOLS = [
+            { id: 1, src: 's1.png' },
+            { id: 2, src: 's2.png' },
+            { id: 3, src: 's3.png' },
+            { id: 4, src: 's4.png' },
+            { id: 5, src: 's5.png' },
+            { id: 6, src: 's6.png' },
+            { id: 7, src: 's7.png' }
         ];
 
-        // Get references to the HTML elements
-        const pull10Button = document.getElementById('pull10Button');
-        const pullMoreButton = document.getElementById('pullMoreButton');
-        const resetButton = document.getElementById('resetButton');
-        const resultsDiv = document.getElementById('results');
-        const totalPullsCountSpan = document.getElementById('totalPullsCount');
-        const totalSSRPullsCountSpan = document.getElementById('totalSSRPullsCount'); 
-        const totalCommonPullsCountSpan = document.getElementById('totalCommonPullsCount'); 
-        const pulledCardsList = document.getElementById('pulledCardsList');
+        let selectedSymbols = [];
 
-        // Statistics variables
-        let totalPulls = 0;
-        let totalSSRPulls = 0; 
-        let totalCommonPulls = 0; 
-        // Stores counts for each unique card pulled: { "Card Name": count }
-        let cardStatistics = {}; 
-        // Stores the last 10 card DOM elements for display
-        let last10CardsDisplayed = [];
-
-        /**
-         * @brief Gets a random card from the predefined cardPool based on their probabilities.
-         * This function implements a weighted random selection.
-         * @returns {object} The randomly selected card object (name and rarity).
-         */
-        function getRandomCard() {
-            // Calculate the sum of all probabilities to ensure the random number is within the correct range.
-            // In this case, it should sum to 1.0 (or very close due to floating point arithmetic).
-            let totalProbability = 0;
-            for (const card of cardPool) {
-                totalProbability += card.probability;
+        // Inicializar bolhas de fundo
+        function createBubbles() {
+            const container = document.getElementById('bubbles');
+            for (let i = 0; i < 20; i++) {
+                const b = document.createElement('div');
+                b.className = 'bubble';
+                const size = Math.random() * 40 + 10 + 'px';
+                b.style.width = size;
+                b.style.height = size;
+                b.style.left = Math.random() * 100 + '%';
+                b.style.animationDelay = Math.random() * 5 + 's';
+                b.style.animationDuration = Math.random() * 5 + 10 + 's';
+                container.appendChild(b);
             }
-
-            // Generate a random number between 0 (inclusive) and totalProbability (exclusive).
-            // This number will determine which card is picked based on its weight.
-            let randomNumber = Math.random() * totalProbability;
-
-            // Iterate through the card pool, subtracting each card's probability from the random number.
-            // The card for which the random number becomes less than its probability is the selected card.
-            for (const card of cardPool) {
-                if (randomNumber < card.probability) {
-                    return card; // Found the card based on its weighted probability
-                }
-                randomNumber -= card.probability;
-            }
-            // Fallback: In case of tiny floating-point inaccuracies, this ensures a card is always returned.
-            // This line ensures a card is returned even if the loop completes without a match due to floating point precision.
-            return cardPool[cardPool.length - 1];
         }
 
-        /**
-         * @brief Updates the statistics based on the pulled card.
-         * @param {object} card - The card object that was pulled.
-         */
-        function updateStatistics(card) {
-            totalPulls++;
-            totalPullsCountSpan.textContent = totalPulls;
-
-            // Increment rarity-specific counts
-            if (card.rarity === 'SSR') {
-                totalSSRPulls++;
-                totalSSRPullsCountSpan.textContent = totalSSRPulls;
-            } else if (card.rarity === 'Common') {
-                totalCommonPulls++;
-                totalCommonPullsCountSpan.textContent = totalCommonPulls;
-            }
-
-            // Increment count for the pulled card
-            cardStatistics[card.name] = (cardStatistics[card.name] || 0) + 1;
-
-            // Render updated statistics
-            renderStatistics();
+        // Iniciar Jogo
+        function initGame() {
+            // Selecionar 4 símbolos aleatórios
+            const shuffled = [...ALL_SYMBOLS].sort(() => 0.5 - Math.random());
+            selectedSymbols = shuffled.slice(0, 4);
+            
+            // Embaralhar a ordem inicial para o jogador
+            const displayOrder = [...selectedSymbols].sort(() => 0.5 - Math.random());
+            
+            renderSlots(displayOrder);
         }
 
-        /**
-         * @brief Renders the current pull statistics in the dedicated section.
-         */
-        function renderStatistics() {
-            pulledCardsList.innerHTML = ''; // Clear previous list
-
-            const ssrCards = [];
-            const commonCards = [];
-
-            // Separate cards by rarity
-            Object.keys(cardStatistics).sort().forEach(cardName => {
-                const cardInfo = cardPool.find(c => c.name === cardName);
-                if (cardInfo) {
-                    if (cardInfo.rarity === 'SSR') {
-                        ssrCards.push({ name: cardName, rarity: cardInfo.rarity, count: cardStatistics[cardName] });
-                    } else if (cardInfo.rarity === 'Common') {
-                        commonCards.push({ name: cardName, rarity: cardInfo.rarity, count: cardStatistics[cardName] });
-                    }
-                }
+        function renderSlots(items) {
+            const area = document.getElementById('slotsArea');
+            area.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'symbol-slot';
+                slot.draggable = true;
+                slot.dataset.id = item.id;
+                slot.dataset.index = index;
+                
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.alt = `Símbolo ${item.id}`;
+                img.onerror = () => { img.src = `https://via.placeholder.com/100?text=S${item.id}`; };
+                
+                slot.appendChild(img);
+                
+                // Eventos de Drag and Drop
+                slot.addEventListener('dragstart', handleDragStart);
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+                slot.addEventListener('dragend', handleDragEnd);
+                
+                area.appendChild(slot);
             });
-
-            // Create and append SSR section
-            if (ssrCards.length > 0) {
-                const ssrSection = document.createElement('div');
-                ssrSection.classList.add('rarity-section');
-                ssrSection.innerHTML = '<h4>SSR Cards</h4>';
-                const ssrList = document.createElement('ul');
-                ssrCards.forEach(card => {
-                    const listItem = document.createElement('li');
-                    listItem.innerHTML = `<strong>${card.name}</strong> (${card.rarity}): <span>${card.count}</span>`;
-                    ssrList.appendChild(listItem);
-                });
-                ssrSection.appendChild(ssrList);
-                pulledCardsList.appendChild(ssrSection);
-            }
-
-            // Create and append Common section
-            if (commonCards.length > 0) {
-                const commonSection = document.createElement('div');
-                commonSection.classList.add('rarity-section');
-                commonSection.innerHTML = '<h4>Common Cards</h4>';
-                const commonList = document.createElement('ul');
-                commonCards.forEach(card => {
-                    const listItem = document.createElement('li');
-                    listItem.innerHTML = `<strong>${card.name}</strong> (${card.rarity}): <span>${card.count}</span>`;
-                    commonList.appendChild(listItem);
-                });
-                commonSection.appendChild(commonList);
-                pulledCardsList.appendChild(commonSection);
-            }
         }
 
-        /**
-         * @brief Performs a 10-card pull, displays the results, and updates statistics.
-         */
-        function performPull() {
-            // Generate 10 new cards and add them to the display
-            for (let i = 0; i < 10; i++) {
-                const card = getRandomCard();
-                
-                const cardElement = document.createElement('div');
-                cardElement.classList.add('card');
-                // Add 'ssr' class if the card is SSR for rainbow styling
-                if (card.rarity === 'SSR') {
-                    cardElement.classList.add('ssr');
-                }
-                
-                const cardNameElement = document.createElement('div');
-                cardNameElement.textContent = card.name;
-                cardElement.appendChild(cardNameElement);
+        let dragSrcEl = null;
 
-                const cardRarityElement = document.createElement('div');
-                cardRarityElement.classList.add('card-rarity');
-                cardRarityElement.textContent = `Rarity: ${card.rarity}`;
-                cardElement.appendChild(cardRarityElement);
-                
-                resultsDiv.appendChild(cardElement);
-                last10CardsDisplayed.push(cardElement); // Add to our tracking array
-
-                updateStatistics(card); // Update statistics for each pulled card
-            }
-
-            // Ensure only the last 10 cards are displayed
-            while (last10CardsDisplayed.length > 10) {
-                const oldestCard = last10CardsDisplayed.shift(); // Remove from beginning of array
-                resultsDiv.removeChild(oldestCard); // Remove from DOM
-            }
-
-            // Adjust button visibility
-            pull10Button.style.display = 'none'; // Hide initial pull button
-            pullMoreButton.style.display = 'block'; // Show "Pull 10 More" button
-            resetButton.style.display = 'block'; // Show reset button
+        function handleDragStart(e) {
+            this.classList.add('dragging');
+            dragSrcEl = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+            e.dataTransfer.setData('symbol-id', this.dataset.id);
         }
 
-        /**
-         * @brief Resets the simulator by clearing results, statistics, and restoring button visibility.
-         */
-        function resetSimulator() {
-            resultsDiv.innerHTML = ''; // Clear results from DOM
-            last10CardsDisplayed = []; // Reset the array tracking displayed cards
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
 
-            totalPulls = 0; // Reset total pulls
-            totalSSRPulls = 0; // Reset SSR pulls
-            totalCommonPulls = 0; // Reset Common pulls
-            cardStatistics = {}; // Reset card statistics
+        function handleDrop(e) {
+            if (e.stopPropagation) e.stopPropagation();
+
+            if (dragSrcEl !== this) {
+                // Troca o conteúdo visual e o ID dos datasets
+                const targetId = this.dataset.id;
+                const sourceId = e.dataTransfer.getData('symbol-id');
+
+                dragSrcEl.innerHTML = this.innerHTML;
+                dragSrcEl.dataset.id = targetId;
+
+                this.innerHTML = e.dataTransfer.getData('text/html');
+                this.dataset.id = sourceId;
+            }
+            return false;
+        }
+
+        function handleDragEnd() {
+            const slots = document.querySelectorAll('.symbol-slot');
+            slots.forEach(s => s.classList.remove('dragging'));
+        }
+
+        function checkOrder() {
+            const slots = document.querySelectorAll('.symbol-slot');
+            const currentIds = Array.from(slots).map(s => parseInt(s.dataset.id));
+            const msgBox = document.getElementById('message-box');
             
-            totalPullsCountSpan.textContent = totalPulls; // Update display
-            totalSSRPullsCountSpan.textContent = totalSSRPulls; // Update SSR display
-            totalCommonPullsCountSpan.textContent = totalCommonPulls; // Update Common display
-            pulledCardsList.innerHTML = ''; // Clear statistics list
+            // A ordem correta é os IDs selecionados em ordem crescente
+            const correctIds = [...currentIds].sort((a, b) => a - b);
             
-            pull10Button.style.display = 'block'; // Show initial pull button
-            pullMoreButton.style.display = 'none'; // Hide "Pull 10 More" button
-            resetButton.style.display = 'none'; // Hide reset button
+            const isCorrect = currentIds.every((val, index) => val === correctIds[index]);
+
+            if (isCorrect) {
+                msgBox.innerHTML = '<span class="success">OS MECANISMOS SE ENCAIXAM! A PORTA SE ABRE...</span>';
+                document.querySelector('.btn-open').disabled = true;
+                
+                // Efeito de vitória
+                setTimeout(() => {
+                    document.getElementById('mainWall').classList.add('door-animation');
+                    setTimeout(() => {
+                        alert("Você desbloqueou os segredos de Atlantis!");
+                        location.reload();
+                    }, 2000);
+                }, 1000);
+            } else {
+                msgBox.innerHTML = '<span class="error">NADA ACONTECE. A ORDEM PARECE INCORRETA.</span>';
+                // Tremer a parede
+                const wall = document.getElementById('mainWall');
+                wall.style.transform = 'translateX(5px)';
+                setTimeout(() => wall.style.transform = 'translateX(-5px)', 50);
+                setTimeout(() => wall.style.transform = 'translateX(0)', 100);
+            }
         }
 
-        // Add event listeners to the buttons
-        pull10Button.addEventListener('click', performPull); 
-        pullMoreButton.addEventListener('click', performPull);
-        resetButton.addEventListener('click', resetSimulator);
-
-        // Initialize statistics display on load
-        renderStatistics();
+        window.onload = () => {
+            createBubbles();
+            initGame();
+        };
     </script>
 </body>
 </html>
